@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tkng52/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run tkng52/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t tkng52/multi-client ./client
+  - docker build -t tkng52/multi-nginx ./nginx
+  - docker build -t tkng52/multi-server ./server
+  - docker build -t tkng52/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push tkng52/multi-client
+  - docker push tkng52/multi-nginx
+  - docker push tkng52/multi-server
+  - docker push tkng52/multi-worker
